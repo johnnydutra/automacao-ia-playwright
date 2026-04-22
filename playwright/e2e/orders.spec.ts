@@ -14,7 +14,9 @@ test('should look up an approved order', async ({ page }) => {
     await page.getByRole('button', { name: 'Buscar Pedido' }).click();
     
     // assert
-    await expect(page.getByTestId('order-result-id')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByTestId('order-result-id')).toContainText(orderLookupCode);
-    await expect(page.getByTestId('order-result-status')).toContainText('APROVADO');
+    // await expect(page.getByTestId('order-result-id')).toBeVisible({ timeout: 10000 });
+    // await expect(page.getByTestId('order-result-id')).toContainText(orderLookupCode);
+    // await expect(page.getByTestId('order-result-status')).toContainText('APROVADO');
+    await expect(page.locator('//p[text()="Pedido"]/following-sibling::p')).toContainText(orderLookupCode);
+    await expect(page.locator('//div[text()="APROVADO"]')).toBeVisible();
 });
