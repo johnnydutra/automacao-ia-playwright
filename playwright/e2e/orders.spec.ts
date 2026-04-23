@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { buildLookupCardLocator, generateOrderCode } from '../support/helpers';
+import { buildLookupCardLocator, generateOrderKey } from '../support/helpers';
+import { OrderLookupPage } from '../support/pages/OrderLookupPage';
 
 test.describe('Order Lookup', () => {
 
@@ -14,7 +15,7 @@ test.describe('Order Lookup', () => {
         // arrange
         const data = {
             order: {
-                number: 'VLO-FDBKHQ',
+                key: 'VLO-FDBKHQ',
                 status: 'APROVADO'
             },
             specs: {
@@ -31,20 +32,20 @@ test.describe('Order Lookup', () => {
         }
         
         // act
-        await page.getByLabel('Número do Pedido').fill(data.order.number);
-        await page.getByRole('button', { name: 'Buscar Pedido' }).click();
-        
+        const orderLookupPage = new OrderLookupPage(page);
+        orderLookupPage.searchOrder(data.order.key);
+
         // assert
-        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.key))).toMatchAriaSnapshot(`
             - img
             - paragraph: Pedido
-            - paragraph: ${data.order.number}
+            - paragraph: ${data.order.key}
             - status:
                 - img
                 - text: ${data.order.status}
             `);
 
-        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.key))).toMatchAriaSnapshot(`
             - img "Velô Sprint"
             - paragraph: Modelo
             - paragraph: Velô Sprint
@@ -80,7 +81,7 @@ test.describe('Order Lookup', () => {
         // arrange
         const data = {
             order: {
-                number: 'VLO-9D7M3V',
+                key: 'VLO-9D7M3V',
                 status: 'REPROVADO'
             },
             specs: {
@@ -97,20 +98,20 @@ test.describe('Order Lookup', () => {
         }
  
         // act
-        await page.getByLabel('Número do Pedido').fill(data.order.number);
-        await page.getByRole('button', { name: 'Buscar Pedido' }).click();
+        const orderLookupPage = new OrderLookupPage(page);
+        orderLookupPage.searchOrder(data.order.key);
         
         // assert
-        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.key))).toMatchAriaSnapshot(`
             - img
             - paragraph: Pedido
-            - paragraph: ${data.order.number}
+            - paragraph: ${data.order.key}
             - status:
                 - img
                 - text: ${data.order.status}
             `);
 
-        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.key))).toMatchAriaSnapshot(`
             - img "Velô Sprint"
             - paragraph: Modelo
             - paragraph: Velô Sprint
@@ -146,7 +147,7 @@ test.describe('Order Lookup', () => {
         // arrange
         const data = {
             order: {
-                number: 'VLO-FDBKHQ',
+                key: 'VLO-FDBKHQ',
                 status: 'EM_ANALISE'
             },
             specs: {
@@ -163,20 +164,20 @@ test.describe('Order Lookup', () => {
         }
 
         // act
-        await page.getByLabel('Número do Pedido').fill(data.order.number);
-        await page.getByRole('button', { name: 'Buscar Pedido' }).click();
+        const orderLookupPage = new OrderLookupPage(page);
+        orderLookupPage.searchOrder(data.order.key);
 
         // assert
-        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.key))).toMatchAriaSnapshot(`
             - img
             - paragraph: Pedido
-            - paragraph: ${data.order.number}
+            - paragraph: ${data.order.key}
             - status:
                 - img
                 - text: ${data.order.status}
             `);
 
-        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.key))).toMatchAriaSnapshot(`
             - img "Velô Sprint"
             - paragraph: Modelo
             - paragraph: Velô Sprint
@@ -210,19 +211,13 @@ test.describe('Order Lookup', () => {
 
     test('should display an error message when the order is not found', async ({ page }) => {
         // arrange
-        const orderLookupCode = generateOrderCode();
+        const orderKey = generateOrderKey();
     
         // act
-        await page.getByLabel('Número do Pedido').fill(orderLookupCode);
+        await page.getByLabel('Número do Pedido').fill(orderKey);
         await page.getByRole('button', { name: 'Buscar Pedido' }).click();
     
-        // assert
-        // const title = page.getByRole('heading', { name: 'Pedido não encontrado' });
-        // const message = page.locator('p', { hasText: 'Verifique o número do pedido e tente novamente' });
-    
-        // await expect(title).toBeVisible();
-        // await expect(message).toBeVisible();
-    
+        // assert   
         await expect(page.locator('#root')).toMatchAriaSnapshot(`
             - img
             - heading "Pedido não encontrado" [level=3]

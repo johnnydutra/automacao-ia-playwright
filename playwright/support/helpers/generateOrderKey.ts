@@ -1,4 +1,4 @@
-export function generateOrderCode(): string {
+export function generateOrderKey(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const prefix = 'VLO-';
 
@@ -10,8 +10,4 @@ export function generateOrderCode(): string {
     }
 
     return prefix + randomized;
-}
-
-export function buildLookupCardLocator(orderNumber: string): string {
-    return 'order-result-' + orderNumber;
 }
