@@ -11,3 +11,7 @@ export function generateOrderCode(): string {
 
     return prefix + randomized;
 }
+
+export function buildLookupCardLocator(orderNumber: string): string {
+    return 'order-result-' + orderNumber;
+}

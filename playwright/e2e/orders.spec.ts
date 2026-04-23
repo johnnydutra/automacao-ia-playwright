@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { generateOrderCode } from '../support/helpers';
+import { buildLookupCardLocator, generateOrderCode } from '../support/helpers';
 
 test.describe('Order Lookup', () => {
 
@@ -12,18 +12,200 @@ test.describe('Order Lookup', () => {
 
     test('should look up an approved order', async ({ page }) => {
         // arrange
-        const orderLookupCode = 'VLO-FBDKHQ';
+        const data = {
+            order: {
+                number: 'VLO-FDBKHQ',
+                status: 'APROVADO'
+            },
+            specs: {
+                color: 'Glacier Blue',
+                wheels: 'aero Wheels'
+            },
+            customer: {
+                name: 'Johnny Test',
+                email: 'test@test.com'
+            },
+            payment: {
+                type: "À Vista"
+            }
+        }
         
         // act
-        await page.getByLabel('Número do Pedido').fill(orderLookupCode);
+        await page.getByLabel('Número do Pedido').fill(data.order.number);
         await page.getByRole('button', { name: 'Buscar Pedido' }).click();
         
         // assert
-        // await expect(page.getByTestId('order-result-id')).toBeVisible({ timeout: 10000 });
-        // await expect(page.getByTestId('order-result-id')).toContainText(orderLookupCode);
-        // await expect(page.getByTestId('order-result-status')).toContainText('APROVADO');
-        await expect(page.locator('//p[text()="Pedido"]/following-sibling::p')).toContainText(orderLookupCode);
-        await expect(page.locator('//div[text()="APROVADO"]')).toBeVisible();
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+            - img
+            - paragraph: Pedido
+            - paragraph: ${data.order.number}
+            - status:
+                - img
+                - text: ${data.order.status}
+            `);
+
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+            - img "Velô Sprint"
+            - paragraph: Modelo
+            - paragraph: Velô Sprint
+            - paragraph: Cor
+            - paragraph: ${data.specs.color}
+            - paragraph: Interior
+            - paragraph: cream
+            - paragraph: Rodas
+            - paragraph: ${data.specs.wheels}
+            - heading "Dados do Cliente" [level=4]
+            - paragraph: Nome
+            - paragraph: ${data.customer.name}
+            - paragraph: Email
+            - paragraph: ${data.customer.email}
+            - paragraph: Loja de Retirada
+            - paragraph
+            - paragraph: Data do Pedido
+            - paragraph: /\\d+\\/\\d+\\/\\d+/
+            - heading "Pagamento" [level=4]
+            - paragraph: ${data.payment.type}
+            - paragraph: /R\\$ \\d+\\.\\d+,\\d+/
+            `);
+
+        const statusBadge = page.getByRole('status').filter({ hasText: 'APROVADO' });
+
+        await expect(statusBadge).toContainClass('bg-green-100');
+
+        const statusIcon = statusBadge.locator('svg');
+        await expect(statusIcon).toHaveClass(/lucide-circle-check-big/);
+    });
+
+    test('should look up a rejected order', async ({ page }) => {
+        // arrange
+        const data = {
+            order: {
+                number: 'VLO-9D7M3V',
+                status: 'REPROVADO'
+            },
+            specs: {
+                color: 'Glacier Blue',
+                wheels: 'aero Wheels'
+            },
+            customer: {
+                name: 'Breno Melo',
+                email: 'breno_benjamin_melo@outlook.com'
+            },
+            payment: {
+                type: "À Vista"
+            }
+        }
+ 
+        // act
+        await page.getByLabel('Número do Pedido').fill(data.order.number);
+        await page.getByRole('button', { name: 'Buscar Pedido' }).click();
+        
+        // assert
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+            - img
+            - paragraph: Pedido
+            - paragraph: ${data.order.number}
+            - status:
+                - img
+                - text: ${data.order.status}
+            `);
+
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+            - img "Velô Sprint"
+            - paragraph: Modelo
+            - paragraph: Velô Sprint
+            - paragraph: Cor
+            - paragraph: ${data.specs.color}
+            - paragraph: Interior
+            - paragraph: cream
+            - paragraph: Rodas
+            - paragraph: ${data.specs.wheels}
+            - heading "Dados do Cliente" [level=4]
+            - paragraph: Nome
+            - paragraph: ${data.customer.name}
+            - paragraph: Email
+            - paragraph: ${data.customer.email}
+            - paragraph: Loja de Retirada
+            - paragraph
+            - paragraph: Data do Pedido
+            - paragraph: /\\d+\\/\\d+\\/\\d+/
+            - heading "Pagamento" [level=4]
+            - paragraph: ${data.payment.type}
+            - paragraph: /R\\$ \\d+\\.\\d+,\\d+/
+            `);
+
+        const statusBadge = page.getByRole('status').filter({ hasText: 'REPROVADO' });
+
+        await expect(statusBadge).toContainClass('bg-red-100');
+
+        const statusIcon = statusBadge.locator('svg');
+        await expect(statusIcon).toHaveClass(/lucide-circle-x/);
+    });
+
+    test('should look up an order under analysis', async ({ page }) => {
+        // arrange
+        const data = {
+            order: {
+                number: 'VLO-FDBKHQ',
+                status: 'EM_ANALISE'
+            },
+            specs: {
+                color: 'Midnight Black',
+                wheels: 'aero Wheels'
+            },
+            customer: {
+                name: 'Bruna Santos',
+                email: 'bruna_dossantos@brastek.com.br'
+            },
+            payment: {
+                type: "À Vista"
+            }
+        }
+
+        // act
+        await page.getByLabel('Número do Pedido').fill(data.order.number);
+        await page.getByRole('button', { name: 'Buscar Pedido' }).click();
+
+        // assert
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+            - img
+            - paragraph: Pedido
+            - paragraph: ${data.order.number}
+            - status:
+                - img
+                - text: ${data.order.status}
+            `);
+
+        await expect(page.getByTestId(buildLookupCardLocator(data.order.number))).toMatchAriaSnapshot(`
+            - img "Velô Sprint"
+            - paragraph: Modelo
+            - paragraph: Velô Sprint
+            - paragraph: Cor
+            - paragraph: ${data.specs.color}
+            - paragraph: Interior
+            - paragraph: cream
+            - paragraph: Rodas
+            - paragraph: ${data.specs.wheels}
+            - heading "Dados do Cliente" [level=4]
+            - paragraph: Nome
+            - paragraph: ${data.customer.name}
+            - paragraph: Email
+            - paragraph: ${data.customer.email}
+            - paragraph: Loja de Retirada
+            - paragraph
+            - paragraph: Data do Pedido
+            - paragraph: /\\d+\\/\\d+\\/\\d+/
+            - heading "Pagamento" [level=4]
+            - paragraph: ${data.payment.type}
+            - paragraph: /R\\$ \\d+\\.\\d+,\\d+/
+            `);
+    
+        const statusBadge = page.getByRole('status').filter({ hasText: 'APROVADO' });
+
+        await expect(statusBadge).toContainClass('bg-amber-100');
+    
+        const statusIcon = statusBadge.locator('svg');
+        await expect(statusIcon).toHaveClass(/lucide-clock-icon/);
     });
 
     test('should display an error message when the order is not found', async ({ page }) => {
@@ -47,49 +229,6 @@ test.describe('Order Lookup', () => {
             - paragraph: "Verifique o número do pedido e tente novamente"
             `);
     });
-
-    test('should use snapshots to validate order', async ({ page }) => {
-        // arrange
-        const orderLookupCode = 'VLO-FBDKHQ';
-        const targetTestId = 'order-result-' + orderLookupCode;
-        
-        // act
-        await page.getByLabel('Número do Pedido').fill(orderLookupCode);
-        await page.getByRole('button', { name: 'Buscar Pedido' }).click();
-
-        // assert
-        await expect(page.getByTestId(targetTestId)).toMatchAriaSnapshot(`
-            - img
-            - paragraph: Pedido
-            - paragraph: ${orderLookupCode}
-            - img
-            - text: APROVADO
-            `);
-
-          await expect(page.getByTestId(targetTestId)).toMatchAriaSnapshot(`
-            - img "Velô Sprint"
-            - paragraph: Modelo
-            - paragraph: Velô Sprint
-            - paragraph: Cor
-            - paragraph: Glacier Blue
-            - paragraph: Interior
-            - paragraph: cream
-            - paragraph: Rodas
-            - paragraph: aero Wheels
-            - heading "Dados do Cliente" [level=4]
-            - paragraph: Nome
-            - paragraph: Johnny Test
-            - paragraph: Email
-            - paragraph: test@test.com
-            - paragraph: Loja de Retirada
-            - paragraph
-            - paragraph: Data do Pedido
-            - paragraph: /\\d+\\/\\d+\\/\\d+/
-            - heading "Pagamento" [level=4]
-            - paragraph: À Vista
-            - paragraph: /R\\$ \\d+\\.\\d+,\\d+/
-            `);
-    })
 });
 
 
